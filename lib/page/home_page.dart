@@ -14,6 +14,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<movieModel> _movies = <movieModel>[];
+  TextEditingController searchController = TextEditingController();
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -22,14 +24,37 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<movieModel>> _fetchAllMovies() async {
+    setState(() {
+      isLoading = true;
+    });
     final response = await http
-        .get(Uri.parse("http://www.omdbapi.com/?s=Top Gun&apikey=6e79f3b4"));
+        .get(Uri.parse("http://www.omdbapi.com/?s=Batman&apikey=6e79f3b4"));
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       Iterable list = result["Search"];
       setState(() {
         _movies = list.map((movie) => movieModel.fromJson(movie)).toList();
+        isLoading = false;
+      });
+      return _movies;
+    } else {
+      throw Exception("Failed to load movies!");
+    }
+  }
+
+  Future<List<movieModel>> _fetchSearchedMovies(String searchValue) async {
+    setState(() {
+      isLoading = true;
+    });
+    final response = await http.get(Uri.parse(
+        "http://www.omdbapi.com/?s=" + searchValue + "&apikey=6e79f3b4"));
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      Iterable list = result["Search"];
+      setState(() {
+        _movies = list.map((movie) => movieModel.fromJson(movie)).toList();
+        isLoading = false;
       });
       return _movies;
     } else {
@@ -43,53 +68,96 @@ class _HomePageState extends State<HomePage> {
         title: "Movies App",
         home: Scaffold(
             appBar: AppBar(title: Text("Movies")),
-            body: Column(
-              children: [
-                Container(
-                  height: 550,
-                  child: ListView.builder(
-                      itemCount: _movies.length,
-                      itemBuilder: (context, index) {
-                        final movie = _movies[index];
+            body: Container(
+              padding: EdgeInsets.only(top: 10),
+              child: Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: TextField(
+                      controller: searchController,
+                      style: TextStyle(fontSize: 15),
+                      autocorrect: true,
+                      enableSuggestions: true,
+                      decoration: InputDecoration(
+                        suffixIcon: IconButton(
+                            onPressed: () {
+                              String searchInput = searchController.text;
+                              print(searchInput);
+                              _fetchSearchedMovies(searchInput);
+                            },
+                            icon: Icon(Icons.search)),
+                        contentPadding: EdgeInsets.all(12),
+                        isDense: true,
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        hintText: 'Search for movies',
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(width: 0.5),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(width: 1),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  isLoading
+                      ? Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      : Expanded(
+                          child: ListView.builder(
+                              itemCount: _movies.length,
+                              itemBuilder: (context, index) {
+                                final movie = _movies[index];
 
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => DetailPage(model: movie.imdbId,)));
-                            ;
-                          },
-                          child: ListTile(
-                              title: Row(
-                            children: [
-                              SizedBox(
-                                  width: 100,
-                                  child: ClipRRect(
-                                    child: movie.poster == "N/A"
-                                        ? Text("No Picture")
-                                        : Image.network(movie.poster),
-                                    borderRadius: BorderRadius.circular(10),
-                                  )),
-                              Flexible(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) => DetailPage(
+                                                  model: movie.imdbId,
+                                                )));
+                                    ;
+                                  },
+                                  child: ListTile(
+                                      title: Row(
                                     children: [
-                                      Text(movie.title),
-                                      Text(movie.year)
+                                      SizedBox(
+                                          width: 100,
+                                          child: ClipRRect(
+                                            child: movie.poster == "N/A"
+                                                ? Text("No Picture")
+                                                : Image.network(movie.poster),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          )),
+                                      Flexible(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(movie.title),
+                                              Text(movie.year)
+                                            ],
+                                          ),
+                                        ),
+                                      )
                                     ],
-                                  ),
-                                ),
-                              )
-                            ],
-                          )),
-                        );
-                      }),
-                )
-              ],
+                                  )),
+                                );
+                              }),
+                        )
+                ],
+              ),
             )));
   }
 }
