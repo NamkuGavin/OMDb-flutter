@@ -28,7 +28,7 @@ class _DetailPageState extends State<DetailPage> {
 
   fetchDetail() async {
     String url =
-        "https://www.omdbapi.com/?i=" + widget.model + "&apikey=6e79f3b4";
+        "https://www.omdbapi.com/?t=" + widget.model + "&apikey=6e79f3b4";
     final res = await http.get(Uri.parse(url));
 
     if (res.statusCode == 200) {
@@ -46,26 +46,40 @@ class _DetailPageState extends State<DetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
         title: Text("Details"),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
               child: Column(
                 children: [
                   SizedBox(
-                      width: 100,
+                      width: 150,
                       child: ClipRRect(
                         child: movieDetail!.poster == "N/A"
                             ? Text("No Picture")
-                            : Image.network(movieDetail!.poster),
+                            : Image.network(
+                                movieDetail!.poster,
+                              ),
                         borderRadius: BorderRadius.circular(10),
                       )),
-                  SizedBox(height: 10,),
-                  Text(movieDetail!.title, textAlign: TextAlign.center,),
-                  SizedBox(height: 10,),
-                  Text(movieDetail!.plot, textAlign: TextAlign.center,),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    movieDetail!.title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    movieDetail!.plot,
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
