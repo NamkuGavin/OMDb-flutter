@@ -14,6 +14,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<movieModel> _movies = <movieModel>[];
+  List<movieModel> favoriteDataList = <movieModel>[];
   TextEditingController searchController = TextEditingController();
   bool isLoading = false;
 
@@ -64,100 +65,192 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: "Movies App",
-        home: Scaffold(
-            appBar: AppBar(title: Text("Movies")),
-            body: Container(
-              padding: EdgeInsets.only(top: 10),
-              child: Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: TextField(
-                      controller: searchController,
-                      style: TextStyle(fontSize: 15),
-                      autocorrect: true,
-                      enableSuggestions: true,
-                      decoration: InputDecoration(
-                        suffixIcon: IconButton(
-                            onPressed: () {
-                              String searchInput = searchController.text;
-                              print(searchInput);
-                              _fetchSearchedMovies(searchInput);
-                            },
-                            icon: Icon(Icons.search)),
-                        contentPadding: EdgeInsets.all(12),
-                        isDense: true,
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        hintText: 'Search for movies',
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(width: 0.5),
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(width: 1),
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  isLoading
-                      ? Center(
-                          child: CircularProgressIndicator(),
-                        )
-                      : Expanded(
-                          child: ListView.builder(
-                              itemCount: _movies.length,
-                              itemBuilder: (context, index) {
-                                final movie = _movies[index];
-
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => DetailPage(
-                                                  model: movie.imdbId,
-                                                )));
-                                    ;
-                                  },
-                                  child: ListTile(
-                                      title: Row(
-                                    children: [
-                                      SizedBox(
-                                          width: 100,
-                                          child: ClipRRect(
-                                            child: movie.poster == "N/A"
-                                                ? Text("No Picture")
-                                                : Image.network(movie.poster),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          )),
-                                      Flexible(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(movie.title),
-                                              Text(movie.year)
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  )),
-                                );
-                              }),
-                        )
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+            appBar: AppBar(
+              title: Text("Movies"),
+              backgroundColor: Colors.deepPurple,
+              bottom: TabBar(
+                tabs: [
+                  Tab(icon: Icon(Icons.article_rounded)),
+                  Tab(icon: Icon(Icons.favorite)),
                 ],
               ),
+            ),
+            body: TabBarView(
+              children: [
+                Container(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: TextField(
+                          controller: searchController,
+                          style: TextStyle(fontSize: 15),
+                          autocorrect: true,
+                          enableSuggestions: true,
+                          decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                                onPressed: () {
+                                  String searchInput = searchController.text;
+                                  print(searchInput);
+                                  _fetchSearchedMovies(searchInput);
+                                },
+                                icon: Icon(Icons.search)),
+                            contentPadding: EdgeInsets.all(12),
+                            isDense: true,
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            hintText: 'Search for movies',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(width: 0.5),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(width: 1),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      isLoading
+                          ? Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : Expanded(
+                              child: ListView.builder(
+                                  itemCount: _movies.length,
+                                  itemBuilder: (context, index) {
+                                    final movie = _movies[index];
+
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) => DetailPage(
+                                                      model: movie.imdbId,
+                                                    )));
+                                        ;
+                                      },
+                                      child: ListTile(
+                                          title: Row(
+                                        children: [
+                                          SizedBox(
+                                              width: 100,
+                                              child: ClipRRect(
+                                                child: movie.poster == "N/A"
+                                                    ? Text("No Picture")
+                                                    : Image.network(
+                                                        movie.poster),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              )),
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(movie.title),
+                                                  Text(movie.year)
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                favoriteDataList
+                                                    .add(_movies[index]);
+                                              });
+                                            },
+                                            icon: Icon(
+                                              Icons.favorite,
+                                              color: Colors.purple,
+                                            ),
+                                          )
+                                        ],
+                                      )),
+                                    );
+                                  }),
+                            ),
+                    ],
+                  ),
+                ),
+                favoriteDataList.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'There are no favorites yet!',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      )
+                    : Expanded(
+                        child: ListView.builder(
+                            itemCount: favoriteDataList.length,
+                            itemBuilder: (context, index) {
+                              final movie = favoriteDataList[index];
+
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => DetailPage(
+                                                model: movie.imdbId,
+                                              )));
+                                  ;
+                                },
+                                child: ListTile(
+                                    title: Row(
+                                  children: [
+                                    SizedBox(
+                                        width: 100,
+                                        child: ClipRRect(
+                                          child: movie.poster == "N/A"
+                                              ? Text("No Picture")
+                                              : Image.network(movie.poster),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        )),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(movie.title),
+                                            Text(movie.year)
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          favoriteDataList
+                                              .remove(favoriteDataList[index]);
+                                        });
+                                      },
+                                      icon: Icon(
+                                        Icons.remove_circle,
+                                        color: Colors.purple,
+                                      ),
+                                    )
+                                  ],
+                                )),
+                              );
+                            }),
+                      ),
+              ],
             )));
   }
 }
