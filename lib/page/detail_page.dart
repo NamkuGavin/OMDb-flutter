@@ -16,9 +16,11 @@ class DetailPage extends StatefulWidget {
 
 class _DetailPageState extends State<DetailPage> {
   detailModel? movieDetail;
+  bool isLoading = false;
 
   @override
   void initState() {
+    isLoading = true;
     // TODO: implement initState
     fetchDetail();
     super.initState();
@@ -32,6 +34,7 @@ class _DetailPageState extends State<DetailPage> {
     if (res.statusCode == 200) {
       setState(() {
         movieDetail = detailModel.fromJson(json.decode(res.body.toString()));
+        isLoading = false;
       });
       return movieDetail;
     } else {
@@ -45,22 +48,27 @@ class _DetailPageState extends State<DetailPage> {
       appBar: AppBar(
         title: Text("Details"),
       ),
-      body: Container(
-        child: Column(
-          children: [
-            SizedBox(
-                width: 100,
-                child: ClipRRect(
-                  child: movieDetail!.poster == "N/A"
-                      ? Text("No Picture")
-                      : Image.network(movieDetail!.poster),
-                  borderRadius: BorderRadius.circular(10),
-                )),
-            Text(movieDetail!.title),
-            Text(movieDetail!.plot),
-          ],
-        ),
-      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              child: Column(
+                children: [
+                  SizedBox(
+                      width: 100,
+                      child: ClipRRect(
+                        child: movieDetail!.poster == "N/A"
+                            ? Text("No Picture")
+                            : Image.network(movieDetail!.poster),
+                        borderRadius: BorderRadius.circular(10),
+                      )),
+                  SizedBox(height: 10,),
+                  Text(movieDetail!.title, textAlign: TextAlign.center,),
+                  SizedBox(height: 10,),
+                  Text(movieDetail!.plot, textAlign: TextAlign.center,),
+                ],
+              ),
+            ),
     );
   }
 }
